@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>คำนวณ BTU เครื่องปรับอากาศ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#0284C7; --blue-light:#38BDF8; --pale:#E0F2FE;
+    --ink:#0F172A; --ink-soft:#475569; --gray:#F1F5F9; --line:#E2E8F0;
+    --warn:#B45309; --warn-bg:#FEF3C7; --ok:#16A34A;
+    --radius:14px; --maxw:900px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'IBM Plex Sans Thai',sans-serif;background:#fff;color:var(--ink);-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,.display{font-family:'Kanit',sans-serif;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px;}
+  button{font-family:inherit;cursor:pointer;}
+  input,select{font-family:inherit;}
+
+  header{background:var(--blue);color:#fff;padding:20px 0;}
+  header .wrap{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+  header h1{font-size:20px;margin:0;}
+  header p{margin:2px 0 0;font-size:12.5px;opacity:.85;}
+  .tabbar{display:flex;gap:8px;}
+  .tabbar button{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);color:#fff;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;}
+  .tabbar button.active{background:#fff;color:var(--blue);border-color:#fff;}
+
+  main{padding:28px 0 60px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:20px;}
+  .card h2{font-size:18px;margin:0 0 4px;}
+  .card .sub{font-size:13px;color:var(--ink-soft);margin:0 0 18px;}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;}
+  .field input,.field select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:14px;}
+  .field .hint{font-size:11.5px;color:#94A3B8;margin-top:4px;}
+
+  .btn{border:none;border-radius:24px;padding:13px 22px;font-size:14.5px;font-weight:600;}
+  .btn-primary{background:var(--blue);color:#fff;width:100%;}
+  .btn-primary:hover{background:#0369A1;}
+  .btn-ghost{background:var(--gray);color:var(--ink);}
+  .btn-outline{background:#fff;border:1.5px solid var(--blue);color:var(--blue);}
+  .btn-sm{padding:6px 12px;font-size:12.5px;border-radius:16px;}
+
+  .result-hero{text-align:center;background:var(--pale);border-radius:var(--radius);padding:24px;margin-bottom:18px;}
+  .result-hero .num{font-family:'Kanit',sans-serif;font-size:38px;font-weight:700;color:var(--blue);}
+  .result-hero .lbl{font-size:13px;color:var(--ink-soft);margin-top:2px;}
+  .result-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;font-size:13.5px;margin-bottom:18px;}
+  .result-meta .k{color:var(--ink-soft);}
+  .result-meta .v{font-weight:600;}
+
+  .reco-main{border:2px solid var(--blue);border-radius:var(--radius);padding:18px;text-align:center;margin-bottom:14px;}
+  .reco-main .tag{font-size:12px;font-weight:600;color:var(--blue);margin-bottom:4px;}
+  .reco-main .btu{font-family:'Kanit',sans-serif;font-size:28px;font-weight:700;}
+  .reco-alt-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
+  .reco-alt{border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;}
+  .reco-alt .tag{font-size:11.5px;font-weight:600;color:var(--ink-soft);margin-bottom:4px;}
+  .reco-alt .btu{font-size:19px;font-weight:700;}
+  .reco-alt .note{font-size:11.5px;color:var(--ink-soft);margin-top:4px;line-height:1.5;}
+
+  .steps-toggle{background:none;border:none;color:var(--blue);font-size:13px;font-weight:600;padding:0;margin-bottom:10px;}
+  .steps-box{display:none;background:var(--gray);border-radius:10px;padding:16px;font-size:13px;line-height:1.9;margin-bottom:18px;}
+  .steps-box.show{display:block;}
+  .steps-box .line{border-bottom:1px dashed var(--line);padding:4px 0;}
+  .steps-box .line:last-child{border-bottom:none;font-weight:700;color:var(--blue);}
+
+  .disclaimer{background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:12px 14px;font-size:12.5px;line-height:1.6;margin-bottom:18px;}
+
+  .example-badge{display:inline-block;background:#FEE2E2;color:#B91C1C;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:12px;}
+  .product-mini-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;}
+  .product-mini{border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center;}
+  .product-mini .brand{font-size:12px;font-weight:700;color:var(--blue);margin-bottom:4px;}
+  .product-mini .btu{font-size:12px;color:var(--ink-soft);margin-bottom:8px;}
+  .product-mini button{width:100%;}
+
+  /* admin */
+  .admin-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px;}
+  .admin-table th{text-align:left;font-size:11px;color:var(--ink-soft);padding:6px;border-bottom:1px solid var(--line);}
+  .admin-table td{padding:6px;border-bottom:1px solid var(--line);}
+  .admin-table input[type="text"],.admin-table input[type="number"]{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-size:13px;}
+  .admin-table input[type="checkbox"]{width:16px;height:16px;}
+  .add-row{background:var(--gray);border:1px dashed var(--line);width:100%;padding:8px;border-radius:8px;font-size:12.5px;font-weight:600;color:var(--blue);margin-top:8px;}
+  .icon-x{background:none;border:none;color:#94A3B8;font-size:15px;}
+  .icon-x:hover{color:#DC2626;}
+  #saveToast{position:fixed;left:50%;top:16px;transform:translate(-50%,-140%);background:var(--ink);color:#fff;padding:11px 20px;border-radius:24px;font-size:13.5px;z-index:100;transition:transform .25s ease;}
+  #saveToast.show{transform:translate(-50%,0);}
+
+  .view{display:none;}
+  .view.active{display:block;}
+
+  @media (max-width:640px){
+    .grid2,.reco-alt-grid,.result-meta{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a href="index.html" style="color:#fff;font-weight:600;text-decoration:none;background:rgba(255,255,255,.18);padding:8px 14px;border-radius:20px;font-size:13px">‹ กลับหน้าแรก</a>
+    <div>
+      <h1>คำนวณ BTU เครื่องปรับอากาศ</h1>
+      <p>เครื่องมือช่วยประมาณขนาดแอร์ที่เหมาะกับห้อง</p>
+    </div>
+    <div class="tabbar">
+      <button id="tabCalcBtn" class="active" onclick="showView('calc')">คำนวณ BTU</button>
+      <button id="tabAdminBtn" onclick="showView('admin')">ตั้งค่าการคำนวณ</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <!-- ============ CUSTOMER VIEW ============ -->
+    <div class="view active" id="view-calc">
+      <div class="card">
+        <h2>กรอกข้อมูลห้อง</h2>
+        <p class="sub">กรอกขนาดห้องและลักษณะการใช้งาน ระบบจะประมาณขนาด BTU ที่เหมาะสมให้</p>
+
+        <div class="grid2">
+          <div class="field"><label>ความกว้างห้อง (เมตร)</label><input type="number" id="inWidth" step="0.1" value="4"></div>
+          <div class="field"><label>ความยาวห้อง (เมตร)</label><input type="number" id="inLength" step="0.1" value="5"></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>ความสูงห้อง (เมตร)</label><input type="number" id="inHeight" step="0.1" value="2.5"></div>
+          <div class="field"><label>จำนวนคนที่ใช้งานเป็นประจำ</label><input type="number" id="inPeople" step="1" value="2"></div>
+        </div>
+        <div class="field">
+          <label>ลักษณะการใช้งานห้อง</label>
+          <select id="inRoomType"></select>
+        </div>
+        <div class="field">
+          <label>ทิศทาง/ปริมาณแดดที่ห้องได้รับ</label>
+          <select id="inSun"></select>
+          <div class="hint">เลือกตามลักษณะที่ใกล้เคียงที่สุด เช่น มีหน้าต่าง/กระจกรับแดดมากหรือน้อย</div>
+        </div>
+
+        <button class="btn btn-primary" onclick="runCalculation()">คำนวณ BTU</button>
+      </div>
+
+      <div class="card" id="resultCard" style="display:none;">
+        <h2>ผลการคำนวณ</h2>
+        <div class="result-hero">
+          <div class="num" id="resultBtuNum">0</div>
+          <div class="lbl">BTU ที่คำนวณได้โดยประมาณ</div>
+        </div>
+        <div class="result-meta" id="resultMeta"></div>
+
+        <div id="recoBlock"></div>
+
+        <button class="steps-toggle" onclick="toggleSteps()">ดูวิธีคำนวณ ▾</button>
+        <div class="steps-box" id="stepsBox"></div>
+
+        <div class="disclaimer">
+          ผลการคำนวณเป็นค่าประมาณเบื้องต้น การเลือกขนาดเครื่องปรับอากาศควรพิจารณาลักษณะอาคาร กระจก ความร้อนจากอุปกรณ์ จำนวนคน และสภาพหน้างานจริงร่วมด้วย
+        </div>
+
+        <button class="btn btn-outline" style="width:100%;" onclick="showSuitableProducts()">ดูแอร์ที่เหมาะกับห้องนี้</button>
+        <div id="suitableProductsBlock" style="margin-top:16px;"></div>
+      </div>
+    </div>
+
+    <!-- ============ ADMIN SETTINGS VIEW ============ -->
+    <div class="view" id="view-admin">
+      <div class="card">
+        <h2>ตั้งค่าการคำนวณ BTU</h2>
+        <p class="sub">ค่าทั้งหมดในหน้านี้เป็น <b>ค่าเริ่มต้นสำหรับทดลองใช้งาน</b> แก้ไขได้ตลอด ระบบจะคำนวณใหม่ตามค่าล่าสุดทันทีที่บันทึก ไม่มีการล็อกอินในเวอร์ชันนี้ตามที่ระบุไว้</p>
+
+        <div class="grid2">
+          <div class="field"><label>ค่าพื้นฐาน BTU ต่อ ตร.ม.</label><input type="number" id="cfgBase"></div>
+          <div class="field"><label>ค่า BTU เพิ่มต่อคน</label><input type="number" id="cfgPerPerson"></div>
+        </div>
+        <div class="field" style="max-width:260px;"><label>ความสูงมาตรฐานอ้างอิง (เมตร)</label><input type="number" id="cfgStdHeight" step="0.1"></div>
+      </div>
+
+      <div class="card">
+        <h2>ตัวคูณความสูงห้อง</h2>
+        <p class="sub">กำหนดเป็นช่วง "สูงสุดไม่เกิน X เมตร" เรียงจากน้อยไปมาก แถวสุดท้ายจะถือเป็น "มากกว่า" ค่าของแถวก่อนหน้าโดยอัตโนมัติ</p>
+        <table class="admin-table">
+          <thead><tr><th>ป้ายกำกับ</th><th>สูงสุด (ม.)</th><th>ตัวคูณ</th><th>เปิดใช้</th><th></th></tr></thead>
+          <tbody id="heightTableBody"></tbody>
+        </table>
+        <button class="add-row" onclick="addHeightRow()">+ เพิ่มช่วงความสูง</button>
+      </div>
+
+      <div class="card">
+        <h2>ตัวคูณลักษณะห้อง</h2>
+        <table class="admin-table">
+          <thead><tr><th>ชื่อลักษณะห้อง</th><th>ตัวคูณ</th><th>เปิดใช้</th><th></th></tr></thead>
+          <tbody id="roomTableBody"></tbody>
+        </table>
+        <button class="add-row" onclick="addRoomRow()">+ เพิ่มลักษณะห้อง</button>
+      </div>
+
+      <div class="card">
+        <h2>ตัวคูณทิศทาง/ปริมาณแดด</h2>
+        <table class="admin-table">
+          <thead><tr><th>ระดับแดด</th><th>ตัวคูณ</th><th>เปิดใช้</th><th></th></tr></thead>
+          <tbody id="sunTableBody"></tbody>
+        </table>
+        <button class="add-row" onclick="addSunRow()">+ เพิ่มระดับแดด</button>
+      </div>
+
+      <div class="card">
+        <h2>รายการ BTU มาตรฐานที่ใช้แนะนำ</h2>
+        <p class="sub">ระบบจะแนะนำขนาดที่ "มากกว่าหรือเท่ากับ" BTU ที่คำนวณได้ จากรายการนี้เท่านั้น</p>
+        <table class="admin-table">
+          <thead><tr><th>ขนาด (BTU)</th><th>เปิดใช้</th><th></th></tr></thead>
+          <tbody id="sizeTableBody"></tbody>
+        </table>
+        <button class="add-row" onclick="addSizeRow()">+ เพิ่มขนาด BTU</button>
+      </div>
+
+      <button class="btn btn-primary" onclick="saveConfig()">บันทึกการตั้งค่าทั้งหมด</button>
+    </div>
+
+  </div>
+</main>
+
+<div id="saveToast"></div>
+
+<script>
+  const CONFIG_KEY = 'btu-calc-config';
+
+  const DEFAULT_CONFIG = {
+    baseBtuPerSqm: 700,
+    btuPerPerson: 600,
+    standardHeight: 2.5,
+    heightMultipliers: [
+      { label: 'ไม่เกิน 2.5 เมตร', max: 2.5, mult: 1.00, enabled: true },
+      { label: '2.51 - 3.00 เมตร', max: 3.00, mult: 1.10, enabled: true },
+      { label: '3.01 - 3.50 เมตร', max: 3.50, mult: 1.20, enabled: true },
+      { label: 'มากกว่า 3.50 เมตร', max: null, mult: 1.30, enabled: true }
+    ],
+    roomTypeMultipliers: [
+      { name: 'ห้องนอน', mult: 1.00, enabled: true },
+      { name: 'ห้องนั่งเล่น', mult: 1.05, enabled: true },
+      { name: 'ห้องรับแขก', mult: 1.05, enabled: true },
+      { name: 'ห้องทำงาน', mult: 1.10, enabled: true },
+      { name: 'สำนักงาน', mult: 1.15, enabled: true },
+      { name: 'ร้านค้า', mult: 1.20, enabled: true },
+      { name: 'ร้านอาหาร', mult: 1.30, enabled: true },
+      { name: 'ห้องประชุม', mult: 1.25, enabled: true },
+      { name: 'ห้องที่มีคนเข้าออกบ่อย', mult: 1.20, enabled: true },
+      { name: 'ห้องที่มีความร้อนสูง', mult: 1.40, enabled: true }
+    ],
+    sunMultipliers: [
+      { name: 'ไม่โดนแดดโดยตรง', mult: 1.00, enabled: true },
+      { name: 'โดนแดดเล็กน้อย', mult: 1.05, enabled: true },
+      { name: 'แดดปานกลาง', mult: 1.10, enabled: true },
+      { name: 'แดดจัด', mult: 1.20, enabled: true },
+      { name: 'ห้องกระจก / รับแดดมาก', mult: 1.30, enabled: true }
+    ],
+    standardBtuSizes: [
+      { size: 9000, enabled: true }, { size: 12000, enabled: true }, { size: 18000, enabled: true },
+      { size: 24000, enabled: true }, { size: 30000, enabled: true }, { size: 36000, enabled: true },
+      { size: 40000, enabled: true }, { size: 48000, enabled: true }, { size: 60000, enabled: true }
+    ]
+  };
+
+  // ตัวอย่างข้อมูลแบรนด์ที่จะเชื่อมกับระบบสินค้า/ใบเสนอราคาในภายหลัง
+  // (ยังไม่ใช่ฐานข้อมูลสินค้าจริง — รอไฟล์โลโก้และระบบแบรนด์)
+  const EXAMPLE_BRANDS = ['Mitsubishi Electric','Mitsubishi Heavy Industries','GREE','LG','Samsung','Hisense','Panasonic','MAVEL','AUX','Midea','TCL','Haier','Central Air','AMENA'];
+
+  let config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+  let lastResult = null;
+
+  function showToast(msg){
+    const t = document.getElementById('saveToast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  function showView(name){
+    document.getElementById('view-calc').classList.toggle('active', name === 'calc');
+    document.getElementById('view-admin').classList.toggle('active', name === 'admin');
+    document.getElementById('tabCalcBtn').classList.toggle('active', name === 'calc');
+    document.getElementById('tabAdminBtn').classList.toggle('active', name === 'admin');
+  }
+
+  async function loadConfig(){
+    try{
+      const res = await window.storage.get(CONFIG_KEY, true);
+      if(res && res.value){ config = JSON.parse(res.value); }
+    }catch(e){ /* use defaults */ }
+    populateSelects();
+    renderAdminTables();
+  }
+
+  function populateSelects(){
+    const roomSel = document.getElementById('inRoomType');
+    roomSel.innerHTML = config.roomTypeMultipliers.filter(r => r.enabled).map(r => `<option value="${escapeAttr(r.name)}">${r.name}</option>`).join('');
+    const sunSel = document.getElementById('inSun');
+    sunSel.innerHTML = config.sunMultipliers.filter(s => s.enabled).map(s => `<option value="${escapeAttr(s.name)}">${s.name}</option>`).join('');
+  }
+
+  function escapeAttr(s){ return String(s == null ? '' : s).replace(/"/g,'&quot;'); }
+  function fmt(n){ return Number(n||0).toLocaleString('th-TH'); }
+
+  // ---------------- Calculation ----------------
+  function getHeightMultiplier(height){
+    const tiers = config.heightMultipliers.filter(h => h.enabled);
+    for(const t of tiers){
+      if(t.max === null || t.max === '' || height <= Number(t.max)) return t;
+    }
+    return tiers[tiers.length - 1] || { mult: 1, label: '-' };
+  }
+
+  function runCalculation(){
+    const width = parseFloat(document.getElementById('inWidth').value) || 0;
+    const length = parseFloat(document.getElementById('inLength').value) || 0;
+    const height = parseFloat(document.getElementById('inHeight').value) || config.standardHeight;
+    const people = parseInt(document.getElementById('inPeople').value) || 0;
+    const roomTypeName = document.getElementById('inRoomType').value;
+    const sunName = document.getElementById('inSun').value;
+
+    if(width <= 0 || length <= 0 || height <= 0){
+      alert('กรุณากรอกความกว้าง ความยาว และความสูงห้องให้ถูกต้อง');
+      return;
+    }
+
+    const area = width * length;
+    const volume = area * height;
+    const heightTier = getHeightMultiplier(height);
+    const roomType = config.roomTypeMultipliers.find(r => r.name === roomTypeName) || { mult: 1, name: roomTypeName };
+    const sun = config.sunMultipliers.find(s => s.name === sunName) || { mult: 1, name: sunName };
+
+    const btuBase = area * config.baseBtuPerSqm;
+    const afterHeight = btuBase * heightTier.mult;
+    const afterRoom = afterHeight * roomType.mult;
+    const afterSun = afterRoom * sun.mult;
+    const peopleLoad = people * config.btuPerPerson;
+    const totalBtu = afterSun + peopleLoad;
+
+    const sizes = config.standardBtuSizes.filter(s => s.enabled).map(s => s.size).sort((a,b) => a-b);
+    let mainSize = sizes.find(s => s >= totalBtu);
+    if(!mainSize) mainSize = sizes[sizes.length - 1];
+    const mainIdx = sizes.indexOf(mainSize);
+    const smallerSize = mainIdx > 0 ? sizes[mainIdx - 1] : null;
+    const largerSize = mainIdx < sizes.length - 1 ? sizes[mainIdx + 1] : null;
+    // "ใกล้รอยต่อ": ถือว่าใกล้ ถ้า BTU ที่คำนวณได้อยู่เกิน 90% ของขนาดที่แนะนำหลัก (ใกล้จะล้นไปอีกไซซ์)
+    const isNearBoundary = mainSize > 0 && (totalBtu / mainSize) > 0.90;
+
+    lastResult = {
+      width, length, height, people, roomType: roomType.name, sun: sun.name,
+      area, volume, heightTier, roomTypeMult: roomType.mult, sunMult: sun.mult,
+      btuBase, afterHeight, afterRoom, afterSun, peopleLoad, totalBtu,
+      mainSize, smallerSize, largerSize, isNearBoundary
+    };
+
+    renderResult();
+  }
+
+  function renderResult(){
+    const r = lastResult;
+    document.getElementById('resultCard').style.display = 'block';
+    document.getElementById('resultBtuNum').textContent = fmt(Math.round(r.totalBtu)) + ' BTU';
+
+    document.getElementById('resultMeta').innerHTML = `
+      <div><span class="k">ขนาดห้อง: </span><span class="v">${r.width} × ${r.length} × ${r.height} ม.</span></div>
+      <div><span class="k">พื้นที่: </span><span class="v">${fmt(r.area)} ตร.ม.</span></div>
+      <div><span class="k">จำนวนคน: </span><span class="v">${r.people} คน</span></div>
+      <div><span class="k">ลักษณะห้อง: </span><span class="v">${r.roomType}</span></div>
+      <div><span class="k">ทิศทางแดด: </span><span class="v">${r.sun}</span></div>
+    `;
+
+    let recoHtml = `<div class="reco-main"><div class="tag">แนะนำแอร์ขนาด</div><div class="btu">${fmt(r.mainSize)} BTU</div>
+      <div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px;">ขนาดนี้เหมาะกับภาระความร้อนโดยประมาณของห้องจากข้อมูลที่กรอก</div></div>`;
+    if(r.isNearBoundary && (r.smallerSize || r.largerSize)){
+      recoHtml += '<div class="reco-alt-grid">';
+      if(r.smallerSize){
+        recoHtml += `<div class="reco-alt"><div class="tag">ตัวเลือกประหยัด</div><div class="btu">${fmt(r.smallerSize)} BTU</div><div class="note">ประหยัดค่าเครื่องและค่าไฟกว่า แต่ห้องอาจเย็นช้าลงเล็กน้อยในวันที่อากาศร้อนจัด</div></div>`;
+      }
+      if(r.largerSize){
+        recoHtml += `<div class="reco-alt"><div class="tag">ตัวเลือกเผื่อความเย็น</div><div class="btu">${fmt(r.largerSize)} BTU</div><div class="note">เย็นเร็วขึ้นและเผื่อภาระความร้อนที่เพิ่มขึ้นได้ในอนาคต แลกกับราคาและค่าไฟที่สูงขึ้น</div></div>`;
+      }
+      recoHtml += '</div>';
+    }
+    document.getElementById('recoBlock').innerHTML = recoHtml;
+
+    document.getElementById('stepsBox').innerHTML = `
+      <div class="line">พื้นที่ห้อง = ${r.width} × ${r.length} = ${fmt(r.area)} ตร.ม.</div>
+      <div class="line">BTU พื้นฐาน = ${fmt(r.area)} × ${fmt(config.baseBtuPerSqm)} = ${fmt(Math.round(r.btuBase))} BTU</div>
+      <div class="line">ปรับความสูง (${r.heightTier.label}, ×${r.heightTier.mult}) = ${fmt(Math.round(r.btuBase))} × ${r.heightTier.mult} = ${fmt(Math.round(r.afterHeight))} BTU</div>
+      <div class="line">ปรับลักษณะห้อง (${r.roomType}, ×${r.roomTypeMult}) = ${fmt(Math.round(r.afterHeight))} × ${r.roomTypeMult} = ${fmt(Math.round(r.afterRoom))} BTU</div>
+      <div class="line">ปรับแดด (${r.sun}, ×${r.sunMult}) = ${fmt(Math.round(r.afterRoom))} × ${r.sunMult} = ${fmt(Math.round(r.afterSun))} BTU</div>
+      <div class="line">เพิ่มภาระจากคน = ${r.people} × ${fmt(config.btuPerPerson)} = ${fmt(r.peopleLoad)} BTU</div>
+      <div class="line">BTU รวมโดยประมาณ = ${fmt(Math.round(r.afterSun))} + ${fmt(r.peopleLoad)} = ${fmt(Math.round(r.totalBtu))} BTU</div>
+      <div class="line">คำแนะนำ = ${fmt(r.mainSize)} BTU</div>
+    `;
+    document.getElementById('suitableProductsBlock').innerHTML = '';
+  }
+
+  function toggleSteps(){
+    document.getElementById('stepsBox').classList.toggle('show');
+  }
+
+  function showSuitableProducts(){
+    if(!lastResult) return;
+    const html = `<div class="example-badge">ข้อมูลตัวอย่าง — รอเชื่อมฐานข้อมูลสินค้าจริงหลังระบบแบรนด์พร้อมใช้งาน</div>
+      <div class="product-mini-grid">` +
+      EXAMPLE_BRANDS.slice(0, 8).map(b => `
+        <div class="product-mini">
+          <div class="brand">${b}</div>
+          <div class="btu">${fmt(lastResult.mainSize)} BTU (ตัวอย่าง)</div>
+          <button class="btn btn-ghost btn-sm" onclick="stubAddToQuote('${b.replace(/'/g,"")}')">เพิ่มลงใบเสนอราคา</button>
+        </div>`).join('') +
+      `</div>`;
+    document.getElementById('suitableProductsBlock').innerHTML = html;
+  }
+
+  function stubAddToQuote(brand){
+    showToast('ระบบใบเสนอราคาจะเชื่อมต่อเมื่อระบบแบรนด์/สินค้าพร้อมใช้งาน (' + brand + ')');
+  }
+
+  // ---------------- Admin tables ----------------
+  function renderAdminTables(){
+    document.getElementById('cfgBase').value = config.baseBtuPerSqm;
+    document.getElementById('cfgPerPerson').value = config.btuPerPerson;
+    document.getElementById('cfgStdHeight').value = config.standardHeight;
+
+    document.getElementById('heightTableBody').innerHTML = config.heightMultipliers.map((h, i) => `
+      <tr>
+        <td><input type="text" value="${escapeAttr(h.label)}" oninput="config.heightMultipliers[${i}].label=this.value"></td>
+        <td><input type="number" step="0.1" value="${h.max === null ? '' : h.max}" placeholder="ไม่จำกัด" oninput="config.heightMultipliers[${i}].max=this.value===''?null:parseFloat(this.value)"></td>
+        <td><input type="number" step="0.01" value="${h.mult}" oninput="config.heightMultipliers[${i}].mult=parseFloat(this.value)||1"></td>
+        <td><input type="checkbox" ${h.enabled?'checked':''} onchange="config.heightMultipliers[${i}].enabled=this.checked"></td>
+        <td><button class="icon-x" onclick="removeRow('heightMultipliers',${i})">✕</button></td>
+      </tr>`).join('');
+
+    document.getElementById('roomTableBody').innerHTML = config.roomTypeMultipliers.map((r, i) => `
+      <tr>
+        <td><input type="text" value="${escapeAttr(r.name)}" oninput="config.roomTypeMultipliers[${i}].name=this.value"></td>
+        <td><input type="number" step="0.01" value="${r.mult}" oninput="config.roomTypeMultipliers[${i}].mult=parseFloat(this.value)||1"></td>
+        <td><input type="checkbox" ${r.enabled?'checked':''} onchange="config.roomTypeMultipliers[${i}].enabled=this.checked"></td>
+        <td><button class="icon-x" onclick="removeRow('roomTypeMultipliers',${i})">✕</button></td>
+      </tr>`).join('');
+
+    document.getElementById('sunTableBody').innerHTML = config.sunMultipliers.map((s, i) => `
+      <tr>
+        <td><input type="text" value="${escapeAttr(s.name)}" oninput="config.sunMultipliers[${i}].name=this.value"></td>
+        <td><input type="number" step="0.01" value="${s.mult}" oninput="config.sunMultipliers[${i}].mult=parseFloat(this.value)||1"></td>
+        <td><input type="checkbox" ${s.enabled?'checked':''} onchange="config.sunMultipliers[${i}].enabled=this.checked"></td>
+        <td><button class="icon-x" onclick="removeRow('sunMultipliers',${i})">✕</button></td>
+      </tr>`).join('');
+
+    document.getElementById('sizeTableBody').innerHTML = config.standardBtuSizes.map((s, i) => `
+      <tr>
+        <td><input type="number" step="1000" value="${s.size}" oninput="config.standardBtuSizes[${i}].size=parseInt(this.value)||0"></td>
+        <td><input type="checkbox" ${s.enabled?'checked':''} onchange="config.standardBtuSizes[${i}].enabled=this.checked"></td>
+        <td><button class="icon-x" onclick="removeRow('standardBtuSizes',${i})">✕</button></td>
+      </tr>`).join('');
+  }
+
+  function removeRow(key, idx){ config[key].splice(idx, 1); renderAdminTables(); }
+  function addHeightRow(){ config.heightMultipliers.push({ label: 'ช่วงใหม่', max: null, mult: 1.0, enabled: true }); renderAdminTables(); }
+  function addRoomRow(){ config.roomTypeMultipliers.push({ name: 'ลักษณะห้องใหม่', mult: 1.0, enabled: true }); renderAdminTables(); }
+  function addSunRow(){ config.sunMultipliers.push({ name: 'ระดับแดดใหม่', mult: 1.0, enabled: true }); renderAdminTables(); }
+  function addSizeRow(){ config.standardBtuSizes.push({ size: 9000, enabled: true }); renderAdminTables(); }
+
+  async function saveConfig(){
+    config.baseBtuPerSqm = parseFloat(document.getElementById('cfgBase').value) || DEFAULT_CONFIG.baseBtuPerSqm;
+    config.btuPerPerson = parseFloat(document.getElementById('cfgPerPerson').value) || DEFAULT_CONFIG.btuPerPerson;
+    config.standardHeight = parseFloat(document.getElementById('cfgStdHeight').value) || DEFAULT_CONFIG.standardHeight;
+    try{
+      await window.storage.set(CONFIG_KEY, JSON.stringify(config), true);
+      showToast('บันทึกการตั้งค่าแล้ว ระบบจะใช้ค่าล่าสุดทันที');
+    }catch(e){
+      showToast('บันทึกไม่สำเร็จ: ' + e.message);
+    }
+    populateSelects();
+    if(lastResult) runCalculation();
+  }
+
+  loadConfig();
+</script>
+</body>
+</html>
